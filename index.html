@@ -45,8 +45,16 @@
                 resultElement.innerText = `QR Code Lido: ${decodedText}`;
 
                 try {
-                    // Converte o texto do QR Code para um objeto JSON
-                    const qrcodeData = JSON.parse(decodedText); // Assumindo que o QR Code seja uma string JSON válida
+                    // Converte o texto do QR Code para JSON válido
+                    let qrcodeData;
+                    // Tenta converter de um formato Python-style para JSON válido
+                    if (decodedText.startsWith("{") && decodedText.endsWith("}")) {
+                        // Substitui aspas simples por aspas duplas, garantindo que seja um JSON válido
+                        decodedText = decodedText.replace(/'/g, '"');
+                    }
+
+                    // Agora, tenta parsear o texto como JSON
+                    qrcodeData = JSON.parse(decodedText);
 
                     // Envia o JSON para o backend Python
                     fetch("process_qr.py", {
