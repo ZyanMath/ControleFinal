@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -44,27 +44,36 @@
                 const resultElement = document.getElementById("result");
                 resultElement.innerText = `QR Code Lido: ${decodedText}`;
 
-                // Envia o QR Code para o backend
-                fetch("process_qr.py", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ qrcode: decodedText })
-                })
-                .then((response) => response.json())
-                .then((data) => {
-                    if (data.success) {
-                        resultElement.innerText = "Registro atualizado com sucesso!";
-                    } else {
-                        resultElement.innerText = "Erro ao atualizar registro.";
-                    }
+                try {
+                    // Converte o texto do QR Code para um objeto JSON
+                    const qrcodeData = JSON.parse(decodedText); // Assumindo que o QR Code seja uma string JSON válida
+
+                    // Envia o JSON para o backend Python
+                    fetch("process_qr.py", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ qrcode: qrcodeData })
+                    })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        if (data.success) {
+                            resultElement.innerText = "Registro atualizado com sucesso!";
+                        } else {
+                            resultElement.innerText = "Erro ao atualizar registro.";
+                        }
+                        setTimeout(() => { resultElement.innerText = ""; }, 3000);
+                    })
+                    .catch(error => {
+                        console.error("Erro ao processar QR Code:", error);
+                        resultElement.innerText = "Erro ao processar QR Code.";
+                    });
+                } catch (e) {
+                    console.error("Erro ao interpretar o QR Code:", e);
+                    resultElement.innerText = "Erro ao interpretar o QR Code.";
                     setTimeout(() => { resultElement.innerText = ""; }, 3000);
-                })
-                .catch(error => {
-                    console.error("Erro ao processar QR Code:", error);
-                    resultElement.innerText = "Erro ao processar QR Code.";
-                });
+                }
             },
             (errorMessage) => {
                 console.error("Erro no leitor:", errorMessage);
